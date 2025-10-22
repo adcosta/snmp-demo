@@ -1,0 +1,141 @@
+CLASSROOM-MIB DEFINITIONS ::= BEGIN
+
+--
+-- MIB objects for classroom monitoring example implementations
+--
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, Integer32,
+    NOTIFICATION-TYPE                       FROM SNMPv2-SMI
+    RowStatus, StorageType                  FROM SNMPv2-TC
+    InetAddressType, InetAddress            FROM INET-ADDRESS-MIB
+;
+
+-- MODLUE IDENTITY: classromMIB
+-- REVISION e LAST-UPDATED sao datas no formato AAAAMMDDHHMM
+-- Tem de haver um REVISION igual a LAST-UPDATED 
+
+
+classroomMIB MODULE-IDENTITY
+    LAST-UPDATED "202510160000Z"
+    ORGANIZATION "www.uminho.pt"
+    CONTACT-INFO 
+    "postal:   Campus de Gualtar
+                4710-057 BRAGA
+                Portugal
+      email:    costa@di.uminho.pt"
+
+    "Aula de Gestao e Virtualizacao de Redes do MIETI"
+    DESCRIPTION
+    "MIB objects for classroom monitoring example implementations"
+    REVISION     "202510160000Z"
+    DESCRIPTION
+    "Classroom monitoring MIB: a single room (scalars) and a table of students."
+    ::= { experimental 2025 }
+
+-- Top-level branch for objects
+classroomObjects OBJECT IDENTIFIER ::= { classroomMIB 1 }
+
+-- ---------- Textual Conventions ----------
+RoomOperStatus ::= INTEGER { available(1), occupied(2), closed(3) }
+RoomAdminStatus ::= INTEGER { open(1), closed(2) }
+StudentYear     ::= INTEGER { first(1), second(2), third(3), fourth(4), fifth(5), other(99) }
+
+-- ======================================================
+-- Room (single instance) — scalars
+-- ======================================================
+
+roomName OBJECT-TYPE
+  SYNTAX        DisplayString (SIZE (0..64))
+  MAX-ACCESS    read-write
+  STATUS        current
+  DESCRIPTION   "Human-readable room name."
+  ::= { classroomObjects 1 }
+
+roomCapacity OBJECT-TYPE
+  SYNTAX        Integer32 (0..10000)
+  MAX-ACCESS    read-write
+  STATUS        current
+  DESCRIPTION   "Maximum occupants allowed in the room."
+  ::= { classroomObjects 2 }
+
+roomOperStatus OBJECT-TYPE
+  SYNTAX        RoomOperStatus
+  MAX-ACCESS    read-write
+  STATUS        current
+  DESCRIPTION   "Operational status of the room (runtime)."
+  ::= { classroomObjects 3 }
+
+roomAdminStatus OBJECT-TYPE
+  SYNTAX        RoomAdminStatus
+  MAX-ACCESS    read-write
+  STATUS        current
+  DESCRIPTION   "Administrative enable/disable of the room."
+  ::= { classroomObjects 4 }
+
+-- ======================================================
+-- Students (in the single room) — table
+-- ======================================================
+
+studentTable OBJECT-TYPE
+  SYNTAX        SEQUENCE OF StudentEntry
+  MAX-ACCESS    not-accessible
+  STATUS        current
+  DESCRIPTION   "Students present/registered for the (single) room."
+  ::= { classroomObjects 10 }
+
+studentEntry OBJECT-TYPE
+  SYNTAX        StudentEntry
+  MAX-ACCESS    not-accessible
+  STATUS        current
+  DESCRIPTION   "One student row. Managed via RowStatus (create, modify, delete)."
+  INDEX         { studentId }
+  ::= { studentTable 1 }
+
+StudentEntry ::=
+  SEQUENCE {
+    studentId        Unsigned32,
+    studentName      DisplayString,
+    studentYear      StudentYear,
+    studentCourse    DisplayString,
+    studentStatus    RowStatus
+  }
+
+studentId OBJECT-TYPE
+  SYNTAX        Unsigned32
+  MAX-ACCESS    not-accessible
+  STATUS        current
+  DESCRIPTION   "Row index (unique student identifier within this agent)."
+  ::= { studentEntry 1 }
+
+studentName OBJECT-TYPE
+  SYNTAX        DisplayString (SIZE (0..64))
+  MAX-ACCESS    read-create
+  STATUS        current
+  DESCRIPTION   "Student full name."
+  ::= { studentEntry 2 }
+
+studentYear OBJECT-TYPE
+  SYNTAX        StudentYear
+  MAX-ACCESS    read-create
+  STATUS        current
+  DESCRIPTION   "Academic year."
+  ::= { studentEntry 3 }
+
+studentCourse OBJECT-TYPE
+  SYNTAX        DisplayString (SIZE (0..64))
+  MAX-ACCESS    read-create
+  STATUS        current
+  DESCRIPTION   "Course/program (e.g., MIETI)."
+  ::= { studentEntry 4 }
+
+studentStatus OBJECT-TYPE
+  SYNTAX        RowStatus
+  MAX-ACCESS    read-create
+  STATUS        current
+  DESCRIPTION
+    "Row lifecycle: use createAndGo(4)/createAndWait(5) to create;
+     set active(1)/notInService(2) to enable/disable; destroy(6) to delete."
+  ::= { studentEntry 5 }
+
+END
