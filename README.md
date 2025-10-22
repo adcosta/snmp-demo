@@ -1,9 +1,9 @@
 ---
-title: GVR - Exercicio MIB
+title: SNMP Demo - Exercicio MIB
 created: 2025-10-15 22:19
 ---
 
-# GVR - Exercicio MIB
+# SNMP Demo -  Exercicio MIB
 
 ## Problema
 
@@ -19,7 +19,7 @@ created: 2025-10-15 22:19
 
 ## Figura
 
-![[figure-overview.png]]
+![Visão geral](figure-overview.png)
 
 ## Ferramentas a usar
 
@@ -594,17 +594,14 @@ snmptable -v2c -c classroom-auto  127.0.0.1:2001 experimental.classroomMIB.class
 
 ## Referências
 
-- [md_RFC 2579 Textual Conventions for SMIv2](https://www.rfc-editor.org/rfc/rfc2579.html)
-- [md_libsmi - A Library to Access SMI MIB Information](https://www.ibr.cs.tu-bs.de/projects/libsmi/)
-- [md_Tools](https://www.ibr.cs.tu-bs.de/projects/libsmi/tools.html)
-- [md_Complete MIB Database - All SNMP MIBs and OIDs](https://mibs.observium.org/all/)
-- [md_net-snmpmibs](https://github.com/hardaker/net-snmp/tree/master/mibs)
-- [md_Net-SNMP](https://www.net-snmp.org/docs/mibs/)
-- [md_Net-SNMP](https://www.net-snmp.org/)
-- [md_PySNMP 7 Homepage](https://docs.lextudio.com/snmp/)
-- [md_SNMP Simulator Documentation](https://docs.lextudio.com/snmpsim/)
-
--------
-`path:` [[As Minhas Smart Notes]] 
-`seeAlso:` 
+- [git snmp-demo (Exercicio SNMP)](https://github.com/adcosta/snmp-demo)
+- [RFC 2579 Textual Conventions for SMIv2](https://www.rfc-editor.org/rfc/rfc2579.html)
+- [libsmi - A Library to Access SMI MIB Information](https://www.ibr.cs.tu-bs.de/projects/libsmi/)
+- [libsmi - Tools](https://www.ibr.cs.tu-bs.de/projects/libsmi/tools.html)
+- [Complete MIB Database - All SNMP MIBs and OIDs](https://mibs.observium.org/all/)
+- [net-snmpmibs](https://github.com/hardaker/net-snmp/tree/master/mibs)
+- [Net-SNMP MIBs](https://www.net-snmp.org/docs/mibs/)
+- [Net-SNMP](https://www.net-snmp.org/)
+- [PySNMP 7 Homepage](https://docs.lextudio.com/snmp/)
+- [SNMP Simulator Documentation](https://docs.lextudio.com/snmpsim/)
 
