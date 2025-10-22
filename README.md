@@ -590,6 +590,7 @@ snmptable -v2c -c classroom-auto  127.0.0.1:2001 experimental.classroomMIB.class
     - "quantos lugares tem a sala"
     - "quantos alunos estão na sala"
     - "quais os números e nomes dos alunos nos 3 primeiros lugares sentados"
+- Implemente um cliente SNMP simples (ex: usando PySNMP) para obter uma das respostas anteriores
 - Pense num algoritmo para marcar as presenças dos alunos na aula de GVR (por exemplo)
 
 ## Referências
