@@ -84,13 +84,13 @@ snmpsim-command-responder
 
 ### Sumário
 
-**Etapa 1**: Planear a MIB (definir objetos, syntax, acesso) e a SMI (árvore de OIDs dos objetos definidos)
-**Etapa 2**: Descarregar uma MIB exemplo NET-SNMP  para facilitar a edição/criação da nova MIB
-**Etapa 3**: Editar a MIB de acordo com o planeamento feito
-**Etapa 4**: Validar a MIB com a ferramenta **smilint**
-**Etapa 5**: Inventar dados para simular a MIB (à mão ou com gerador de dados)
-**Etapa 6** Executar o simulador - agente SNMP com os dados gerados
-**Etapa 7**: Interrogar o agente (testes)
+- **Etapa 1**: Planear a MIB (definir objetos, syntax, acesso) e a SMI (árvore de OIDs dos objetos definidos)
+- **Etapa 2**: Descarregar uma MIB exemplo NET-SNMP  para facilitar a edição/criação da nova MIB
+- **Etapa 3**: Editar a MIB de acordo com o planeamento feito
+- **Etapa 4**: Validar a MIB com a ferramenta **smilint**
+- **Etapa 5**: Inventar dados para simular a MIB (à mão ou com gerador de dados)
+- **Etapa 6** Executar o simulador - agente SNMP com os dados gerados
+- **Etapa 7**: Interrogar o agente (testes)
 
 ### Etapa 1:  Planear a MIB e a SMI
 
