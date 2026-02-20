@@ -25,7 +25,7 @@ created: 2025-10-15 22:19
 
 - [SMI Tools](https://www.ibr.cs.tu-bs.de/projects/libsmi/tools.html): para validar a MIB (validar e corrigir a syntaxe)
 - [snmpsim](https://docs.lextudio.com/snmpsim/): simulador do agente snmp
-- [net-snmp](https://www.ibr.cs.tu-bs.de/projects/libsmi/tools.html) ou [PySNMP](https://docs.lextudio.com/snmp/) para clientes de linha (snmpget, snmpbulkget, etc)
+- [net-snmp](https://www.net-snmp.org/) ou [PySNMP](https://docs.lextudio.com/snmp/) para clientes de linha (snmpget, snmpbulkget, etc)
 
 ## Como instalar (Ubuntu ou Windows WSL):
 
