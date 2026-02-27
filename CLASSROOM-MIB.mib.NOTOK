@@ -33,37 +33,13 @@ classroomMIB MODULE-IDENTITY
     "Classroom monitoring MIB: a single room (scalars) and a table of students."
     ::= { experimental 2026 }
 
--- ---------- Textual Conventions ----------
-RoomOperStatus ::= INTEGER { available(1), occupied(2), closed(3) }
-RoomAdminStatus ::= INTEGER { open(1), closed(2) }
-StudentYear     ::= INTEGER { first(1), second(2), third(3), fourth(4), fifth(5), other(99) }
-
-VERSITY-MIB DEFINITIONS ::= BEGIN
-
-IMPORTS
-    MODULE-IDENTITY, OBJECT-TYPE, Integer32,
-    Unsigned32, enterprises
-        FROM SNMPv2-SMI
-    TEXTUAL-CONVENTION, DateAndTime, RowStatus,
-    SnmpAdminString
-        FROM SNMPv2-TC;
-
--- ==========================================================
--- MODULE IDENTITY
--- ==========================================================
-
-universityMib MODULE-IDENTITY
-    LAST-UPDATED "202502070000Z"
-    ORGANIZATION "Example University"
-    CONTACT-INFO "Professor Network Management"
-    DESCRIPTION
-        "This MIB module models rooms, students and classes
-         for teaching purposes in Network Management courses."
-    ::= { enterprises 99999 }
-
 -- ==========================================================
 -- TEXTUAL CONVENTIONS
 -- ==========================================================
+
+RoomOperStatus ::= INTEGER { available(1), occupied(2), closed(3) }
+RoomAdminStatus ::= INTEGER { open(1), closed(2) }
+StudentYear     ::= INTEGER { first(1), second(2), third(3), fourth(4), fifth(5), other(99) }
 
 AdminStatus ::= TEXTUAL-CONVENTION
     STATUS current
