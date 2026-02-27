@@ -67,4 +67,27 @@ stateDiagram-v2
     active --> [*] : destroy(6)
     notInService --> [*] : destroy(6)
     notReady --> [*] : destroy(6)
+```
+
+## Adicionar uma nova sala?
+
+```
+snmpset -v2c -c private localhost \
+  CLASSROOM-MIB::building.101 s "B1" \
+  CLASSROOM-MIB::capacity.101 u 30 \
+  CLASSROOM-MIB::roomRowStatus.101 i 4
+
+```
+
+## Qual a capacidade de todas as salas?
+
+```
+snmpwalk -v2c -c public localhost CLASSROOM-MIB::capacity
+```
+
+## Qual a capacidade da sala X?
+
+```
+snmpget -v2c -c public localhost CLASSROOM--MIB::capacity."2.25"
+```
 
