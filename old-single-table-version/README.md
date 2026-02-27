@@ -1,3 +1,8 @@
+---
+title: SNMP Demo - Exercicio MIB
+created: 2025-10-15 22:19
+---
+
 # SNMP Demo -  Exercicio MIB
 
 ## Problema
@@ -91,34 +96,16 @@ snmpsim-command-responder
 
 - Nome do módulo (em letras maiúsculas): CLASSROOM-MIB
 - Prefixo a usar nos objetos (em letras minúsculas):  classroom
-- OID da raíz da MIB (top-level OID): abaixo de experimental(1.3.6.1.3), usando OID 2026
+- OID da raíz da MIB (top-level OID): abaixo de experimental(1.3.6.1.3), usando OID 2025
 
 ```md
 iso(1).org(3).dod(6).internet(1).experimental(3)
-  └─ classroomMIB(2026)
-     ├─ roomTable(1)
-     └─ studentTable(2)
-     └─ classTable(3)
+  └─ classroomMIB(2025)
+     ├─ roomId(1)
+     └─ roomName(2)
      ...
 ```
 
-#### iIdentificar objetos e atributos genericamente
-
-Nesta etapa 1 é fundamental identxtificar os objetos e seus atributos, pensando calmamente no que queremos representar
-  
-  Objetos:
-  - Uma sala, tem um id (inteiro), um nome (string), capacidade (inteiro), estado (conjunto de valores), estado administrativo (conjunto de valores)
-  - Depois temos uma tabela com o numero do lugar, estudante que lá está (nº de estudante, nome, ano, curso)
-
-  - *room*: roomId, campus, building, capacity, estado (administrativo e operacional da sala)
-  - *student*: studentId, studentName, course, year ... 
-  - *class*: roomId, studentId, datetime, UC, ... (?)
-
-  Syntaxe:
-  - Integer32, DisplayString, SEQUENCE OF...
-
-  Acesso por objeto:
-  - not-acessible, read-only, read-write, read-create, ....
 
 ACESSOS
 
@@ -130,11 +117,9 @@ ACESSOS
 | **read-create**           | Same as read-write, _plus_ the ability to create new table rows.                   | Columns in tables that support dynamic creation (with RowStatus) |
 | **accessible-for-notify** | Used only in notification definitions.                                             | Trap/notification parameters                                     |
 
-#### MIB tree
-
-Nesta fase e antes dos detalhes por objecto, é melhor desenhar a MIB em árvore
-
-![MIB (árvore)](figure-mib.png)
+Objetos:
+- Uma sala, tem um id (inteiro), um nome (string), capacidade (inteiro), estado (conjunto de valores), estado administrativo (conjunto de valores)
+- Depois temos uma tabela com o numero do lugar, estudante que lá está (nº de estudante, nome, ano, curso)
 
 Sala de aula:
 
@@ -150,8 +135,6 @@ Tabela de estudantes detetados pela camara e módulo de processamento de imagem:
     - studentYear (INTEGER { first(1), second(2), third(3), fourth(4), fifth(5), other(99) }), **read-create**
     - studentCourse (DisplayString), **read-create**
     - status  (RowStatus), **read-create** (para gerir esta linha da tabela: apagar, criar, alterar)
-
-![Student Table](figure-mib-student.png)
 
 ### Etapa 2:  Descarregar MIB exemplo
 
@@ -185,23 +168,126 @@ IMPORTS
 
 
 classroomMIB MODULE-IDENTITY
-    LAST-UPDATED "202602R27000Z"
+    LAST-UPDATED "202510160000Z"
     ORGANIZATION "www.net-snmp.org"
     CONTACT-INFO    
-    "postal:   Campus de Gualtar
-                4710-057 BRAGA
+    "postal:   Campus de Azurem
+                4800-058 GUIMARAES
                 Portugal
-      email:    costa@di.uminho.pt"
+      email:    gvr@uminho.pt"
 
-    "Exercício MIB presenças na sala de Aula"
+    "Aula de Gestao e Virtualizacao de Redes do MIETI"
     DESCRIPTION
     "MIB objects for classroom monitoring example implementations"
-    REVISION     "202602270000Z"
+    REVISION     "202510160000Z"
     DESCRIPTION
-    "Classroom monitoring MIB: rooms, students and classses."
-    ::= { experimental 2026 }
+    "Classroom monitoring MIB: a single room (scalars) and a table of students."
+    ::= { experimental 2025 }
 
-...
+-- Top-level branch for objects
+classroomObjects OBJECT IDENTIFIER ::= { classroomMIB 1 }
+
+-- ---------- Textual Conventions ----------
+RoomOperStatus ::= INTEGER { available(1), occupied(2), closed(3) }
+RoomAdminStatus ::= INTEGER { open(1), closed(2) }
+StudentYear     ::= INTEGER { first(1), second(2), third(3), fourth(4), fifth(5), other(99) }
+
+-- ======================================================
+-- Room (single instance) — scalars
+-- ======================================================
+
+roomName OBJECT-TYPE
+  SYNTAX        DisplayString (SIZE (0..64))
+  MAX-ACCESS    read-write
+  STATUS        current
+  DESCRIPTION   "Human-readable room name."
+  ::= { classroomObjects 1 }
+
+roomCapacity OBJECT-TYPE
+  SYNTAX        Integer32 (0..10000)
+  MAX-ACCESS    read-write
+  STATUS        current
+  DESCRIPTION   "Maximum occupants allowed in the room."
+  ::= { classroomObjects 2 }
+
+roomOperStatus OBJECT-TYPE
+  SYNTAX        RoomOperStatus
+  MAX-ACCESS    read-write
+  STATUS        current
+  DESCRIPTION   "Operational status of the room (runtime)."
+  ::= { classroomObjects 3 }
+
+roomAdminStatus OBJECT-TYPE
+  SYNTAX        RoomAdminStatus
+  MAX-ACCESS    read-write
+  STATUS        current
+  DESCRIPTION   "Administrative enable/disable of the room."
+  ::= { classroomObjects 4 }
+
+-- ======================================================
+-- Students (in the single room) — table
+-- ======================================================
+
+studentTable OBJECT-TYPE
+  SYNTAX        SEQUENCE OF StudentEntry
+  MAX-ACCESS    not-accessible
+  STATUS        current
+  DESCRIPTION   "Students present/registered for the (single) room."
+  ::= { classroomObjects 10 }
+
+studentEntry OBJECT-TYPE
+  SYNTAX        StudentEntry
+  MAX-ACCESS    not-accessible
+  STATUS        current
+  DESCRIPTION   "One student row. Managed via RowStatus (create, modify, delete)."
+  INDEX         { studentId }
+  ::= { studentTable 1 }
+
+StudentEntry ::=
+  SEQUENCE {
+    studentId        Unsigned32,
+    studentName      DisplayString,
+    studentYear      StudentYear,
+    studentCourse    DisplayString,
+    studentStatus    RowStatus
+  }
+
+studentId OBJECT-TYPE
+  SYNTAX        Unsigned32
+  MAX-ACCESS    not-accessible
+  STATUS        current
+  DESCRIPTION   "Row index (unique student identifier within this agent)."
+  ::= { studentEntry 1 }
+
+studentName OBJECT-TYPE
+  SYNTAX        DisplayString (SIZE (0..64))
+  MAX-ACCESS    read-create
+  STATUS        current
+  DESCRIPTION   "Student full name."
+  ::= { studentEntry 2 }
+
+studentYear OBJECT-TYPE
+  SYNTAX        StudentYear
+  MAX-ACCESS    read-create
+  STATUS        current
+  DESCRIPTION   "Academic year."
+  ::= { studentEntry 3 }
+
+studentCourse OBJECT-TYPE
+  SYNTAX        DisplayString (SIZE (0..64))
+  MAX-ACCESS    read-create
+  STATUS        current
+  DESCRIPTION   "Course/program (e.g., MIETI)."
+  ::= { studentEntry 4 }
+
+studentStatus OBJECT-TYPE
+  SYNTAX        RowStatus
+  MAX-ACCESS    read-create
+  STATUS        current
+  DESCRIPTION
+    "Row lifecycle: use createAndGo(4)/createAndWait(5) to create;
+     set active(1)/notInService(2) to enable/disable; destroy(6) to delete."
+  ::= { studentEntry 5 }
 
 END
 
