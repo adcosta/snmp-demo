@@ -122,12 +122,12 @@ Nesta etapa 1 é fundamental identxtificar os objetos e seus atributos, pensando
 
 ACESSOS
 
-| **MAX-ACCESS value**      | **Meaning**                                                                        | **Typical usage**                                                |
-| ------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| **MAX-ACCESS value**      | **Meaning**                                                                            | **Typical usage**                                                    |
+| --------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | **not-accessible**        | Object exists for indexing or structure only; cannot be retrieved or set directly. | Table & entry nodes; index columns                               |
 | **read-only**             | Can only be read (GET, GETNEXT, GETBULK).                                          | Counters, status, statistics                                     |
 | **read-write**            | Can be read and modified (GET, SET).                                               | Configurable parameters                                          |
-| **read-create**           | Same as read-write, _plus_ the ability to create new table rows.                   | Columns in tables that support dynamic creation (with RowStatus) |
+| **read-create**           | Same as read-write, _plus_ the ability to create new table rows.                     | Columns in tables that support dynamic creation (with RowStatus) |
 | **accessible-for-notify** | Used only in notification definitions.                                             | Trap/notification parameters                                     |
 
 #### MIB tree
@@ -210,13 +210,16 @@ END
 
 ### Etapa 4:  Validar a MIB
 
+Eliminar primeiro apenas os erros...
+
 ```bash
-smilint -s -m -l 6 -p /usr/share/snmp/mibs/  ./CLASSROOM-MIB.mib
+smilint -s -m -l 3  ./CLASSROOM-MIB.mib
 ```
 
-ou simplesmente:
+... e depois aumentar a verbosidade do compilador para tratar outros avisos:
+
 ```bash
-smilint -s -m -l 3 ./CLASSROOM-MIB.mib
+smilint -s -m -l 6 ./CLASSROOM-MIB.mib
 ```
 
 Nota: a opção -l 6 aumenta o nível de avisos que são enviados (warnings). O default é 3.
@@ -250,158 +253,7 @@ snmptranslate -Td -OS CLASSROOM-MIB::studentTable
 ```
 
 Nesta altura deveremos ter uma versão da MIB já sem errors nenhuns. 
-Algo do género de (**CLASSROOM-MIB.mib**):
-
-```mib
-CLASSROOM-MIB DEFINITIONS ::= BEGIN
-
---
--- MIB objects for classroom monitoring example implementations
---
-
-IMPORTS
-    MODULE-IDENTITY, OBJECT-TYPE, Integer32, Unsigned32, experimental,
-    NOTIFICATION-TYPE                       FROM SNMPv2-SMI
-    RowStatus, StorageType, DisplayString   FROM SNMPv2-TC
-    InetAddressType, InetAddress            FROM INET-ADDRESS-MIB
-;
-
--- MODLUE IDENTITY: classromMIB
--- REVISION e LAST-UPDATED sao datas no formato AAAAMMDDHHMM
--- Tem de haver um REVISION igual a LAST-UPDATED 
-
-
-classroomMIB MODULE-IDENTITY
-    LAST-UPDATED "202510230000Z"
-    ORGANIZATION "www.net-snmp.org"
-    CONTACT-INFO    
-    "postal:   Campus de Azurem
-                4800-058 GUIMARAES
-                Portugal
-      email:    gvr@uminho.pt"
-    DESCRIPTION
-    "MIB objects for classroom monitoring example implementations"
-    REVISION     "202510230000Z"
-    DESCRIPTION
-    "Classroom monitoring MIB: a single room (scalars) and a table of students."
-    ::= { experimental 2025 }
-
--- Top-level branch for objects
-classroomObjects OBJECT IDENTIFIER ::= { classroomMIB 1 }
-
--- Textual Conventions ----------
-RoomOperStatus ::= INTEGER { available(1), occupied(2), closed(3) }
-RoomAdminStatus ::= INTEGER { open(1), closed(2) }
-StudentYear     ::= INTEGER { first(1), second(2), third(3), fourth(4), fifth(5), other(99) }
-
--- ======================================================
--- Room (single instance) — scalars
--- ======================================================
-
-roomName OBJECT-TYPE
-  SYNTAX        DisplayString (SIZE (0..64))
-  MAX-ACCESS    read-write
-  STATUS        current
-  DESCRIPTION   "Human-readable room name."
-  ::= { classroomObjects 1 }
-
-roomCapacity OBJECT-TYPE
-  SYNTAX        Integer32 (0..10000)
-  MAX-ACCESS    read-write
-  STATUS        current
-  DESCRIPTION   "Maximum occupants allowed in the room."
-  ::= { classroomObjects 2 }
-
-roomOperStatus OBJECT-TYPE
-  SYNTAX        RoomOperStatus
-  MAX-ACCESS    read-write
-  STATUS        current
-  DESCRIPTION   "Operational status of the room (runtime)."
-  ::= { classroomObjects 3 }
-
-roomAdminStatus OBJECT-TYPE
-  SYNTAX        RoomAdminStatus
-  MAX-ACCESS    read-write
-  STATUS        current
-  DESCRIPTION   "Administrative enable/disable of the room."
-  ::= { classroomObjects 4 }
-
--- ======================================================
--- Students (in the single room) — table
--- ======================================================
-
-studentTable OBJECT-TYPE
-  SYNTAX        SEQUENCE OF StudentEntry
-  MAX-ACCESS    not-accessible
-  STATUS        current
-  DESCRIPTION   "Students present/registered for the (single) room."
-  ::= { classroomObjects 10 }
-
-studentEntry OBJECT-TYPE
-  SYNTAX        StudentEntry
-  MAX-ACCESS    not-accessible
-  STATUS        current
-  DESCRIPTION   "One student row. Managed via RowStatus (create, modify, delete)."
-  INDEX         { studentId }
-  ::= { studentTable 1 }
-
-StudentEntry ::=
-  SEQUENCE {
-    studentId        Unsigned32,
-    studentName      DisplayString,
-    studentYear      StudentYear,
-    studentCourse    DisplayString,
-    studentRoomSeatNumber  Unsigned32,
-    studentStatus    RowStatus
-  }
-
-studentId OBJECT-TYPE
-  SYNTAX        Unsigned32
-  MAX-ACCESS    read-create
-  STATUS        current
-  DESCRIPTION   "Row index (unique student identifier within this agent)."
-  ::= { studentEntry 1 }
-
-studentName OBJECT-TYPE
-  SYNTAX        DisplayString
-  MAX-ACCESS    read-create
-  STATUS        current
-  DESCRIPTION   "Student full name."
-  ::= { studentEntry 2 }
-
-studentYear OBJECT-TYPE
-  SYNTAX        StudentYear
-  MAX-ACCESS    read-create
-  STATUS        current
-  DESCRIPTION   "Academic year."
-  ::= { studentEntry 3 }
-
-studentCourse OBJECT-TYPE
-  SYNTAX        DisplayString
-  MAX-ACCESS    read-create
-  STATUS        current
-  DESCRIPTION   "Course/program (e.g., MIETI)."
-  ::= { studentEntry 4 }
-
-studentRoomSeatNumber OBJECT-TYPE
-  SYNTAX        Unsigned32
-  MAX-ACCESS    read-create
-  STATUS        current
-  DESCRIPTION   "Room place number where the student was identified"
-  ::= { studentEntry 5 }
-
-studentStatus OBJECT-TYPE
-  SYNTAX        RowStatus
-  MAX-ACCESS    read-create
-  STATUS        current
-  DESCRIPTION
-    "Row lifecycle: use createAndGo(4)/createAndWait(5) to create;
-     set active(1)/notInService(2) to enable/disable; destroy(6) to delete."
-  ::= { studentEntry 6 }
-
-END
-
-```
+Algo do género de (**CLASSROOM-MIB.mib**)
 
 ### Etapa 5:  Inventar dados para simulação
 
