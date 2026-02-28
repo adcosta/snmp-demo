@@ -5,11 +5,11 @@ CLASSROOM-MIB DEFINITIONS ::= BEGIN
 --
 
 IMPORTS
-    MODULE-IDENTITY, OBJECT-TYPE, Integer32, Unsigned32, experimental,
-    NOTIFICATION-TYPE                       FROM SNMPv2-SMI
-    RowStatus, StorageType, DisplayString   FROM SNMPv2-TC
-    InetAddressType, InetAddress            FROM INET-ADDRESS-MIB
-;
+    MODULE-IDENTITY, OBJECT-TYPE, Integer32, 
+    Unsigned32, experimental                FROM SNMPv2-SMI
+    RowStatus, DisplayString, DateAndTime, 
+    TEXTUAL-CONVENTION                      FROM SNMPv2-TC
+    OBJECT-GROUP, MODULE-COMPLIANCE         FROM SNMPv2-CONF;
 
 -- MODLUE IDENTITY: classromMIB
 -- REVISION e LAST-UPDATED sao datas no formato AAAAMMDDHHMM
@@ -35,46 +35,32 @@ classroomMIB MODULE-IDENTITY
 -- TEXTUAL CONVENTIONS
 -- ==========================================================
 
-RoomOperStatus ::= INTEGER { available(1), occupied(2), closed(3) }
-RoomAdminStatus ::= INTEGER { open(1), closed(2) }
-StudentYear     ::= INTEGER { first(1), second(2), third(3), fourth(4), fifth(5), other(99) }
 
-AdminStatus ::= TEXTUAL-CONVENTION
+RoomAdminStatus ::= TEXTUAL-CONVENTION
     STATUS current
     DESCRIPTION
         "Administrative status of a room."
     SYNTAX INTEGER {
-        free(1),
+        open(1),
         reserved(2),
         closed(3)
     }
 
-OperStatus ::= TEXTUAL-CONVENTION
+RoomOperStatus ::= TEXTUAL-CONVENTION
     STATUS current
     DESCRIPTION
         "Operational state of a room."
     SYNTAX INTEGER {
         free(1),
-        inUse(2)
+        inUse(2),
+        unusable(3)
     }
 
-RoomId ::= TEXTUAL-CONVENTION
-    STATUS current
-    DESCRIPTION
-        "A unique identifier assigned to a room."
-    SYNTAX Integer32 (1..2147483647)
-
-StudentId ::= TEXTUAL-CONVENTION
-    STATUS current
-    DESCRIPTION
-        "A unique identifier assigned to a student."
-    SYNTAX Integer32 (1..2147483647)
-
-CourseYear ::= TEXTUAL-CONVENTION
+StudentCourseYear ::= TEXTUAL-CONVENTION
     STATUS current
     DESCRIPTION
         "The academic year of the student within the course."
-    SYNTAX INTEGER (1..10)
+    SYNTAX INTEGER { first(1), second(2), third(3), fourth(4), fifth(5) }
 
 -- ==========================================================
 -- ROOMS
@@ -86,7 +72,7 @@ roomTable OBJECT-TYPE
     STATUS      current
     DESCRIPTION
         "Table containing information about university rooms."
-    ::= { universityMib 1 }
+    ::= { classroomMIB 1 }
 
 roomEntry OBJECT-TYPE
     SYNTAX      RoomEntry
@@ -98,17 +84,17 @@ roomEntry OBJECT-TYPE
     ::= { roomTable 1 }
 
 RoomEntry ::= SEQUENCE {
-    roomId          RoomId,
-    campus          SnmpAdminString,
-    building        SnmpAdminString,
+    roomId          DisplayString,
+    campus          DisplayString,
+    building        DisplayString,
     capacity        Unsigned32,
-    adminStatus     AdminStatus,
-    operStatus      OperStatus,
+    adminStatus     RoomAdminStatus,
+    operStatus      RoomOperStatus,
     roomRowStatus   RowStatus
 }
 
 roomId OBJECT-TYPE
-    SYNTAX      RoomId
+    SYNTAX      DisplayString (SIZE(0..12))
     MAX-ACCESS  not-accessible
     STATUS      current
     DESCRIPTION
@@ -116,7 +102,7 @@ roomId OBJECT-TYPE
     ::= { roomEntry 1 }
 
 campus OBJECT-TYPE
-    SYNTAX      SnmpAdminString (SIZE(0..64))
+    SYNTAX      DisplayString (SIZE(0..64))
     MAX-ACCESS  read-create
     STATUS      current
     DESCRIPTION
@@ -124,7 +110,7 @@ campus OBJECT-TYPE
     ::= { roomEntry 2 }
 
 building OBJECT-TYPE
-    SYNTAX      SnmpAdminString (SIZE(0..64))
+    SYNTAX      DisplayString (SIZE(0..64))
     MAX-ACCESS  read-create
     STATUS      current
     DESCRIPTION
@@ -140,7 +126,7 @@ capacity OBJECT-TYPE
     ::= { roomEntry 4 }
 
 adminStatus OBJECT-TYPE
-    SYNTAX      AdminStatus
+    SYNTAX      RoomAdminStatus
     MAX-ACCESS  read-create
     STATUS      current
     DESCRIPTION
@@ -148,7 +134,7 @@ adminStatus OBJECT-TYPE
     ::= { roomEntry 5 }
 
 operStatus OBJECT-TYPE
-    SYNTAX      OperStatus
+    SYNTAX      RoomOperStatus
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
@@ -174,7 +160,7 @@ studentTable OBJECT-TYPE
     STATUS      current
     DESCRIPTION
         "Table containing information about students."
-    ::= { universityMib 2 }
+    ::= { classroomMIB 2 }
 
 studentEntry OBJECT-TYPE
     SYNTAX      StudentEntry
@@ -186,15 +172,15 @@ studentEntry OBJECT-TYPE
     ::= { studentTable 1 }
 
 StudentEntry ::= SEQUENCE {
-    studentId        StudentId,
-    studentName      SnmpAdminString,
-    course           SnmpAdminString,
-    courseYear       CourseYear,
+    studentId        DisplayString,
+    studentName      DisplayString,
+    course           DisplayString,
+    courseYear       StudentCourseYear,
     studentRowStatus RowStatus
 }
 
 studentId OBJECT-TYPE
-    SYNTAX      StudentId
+    SYNTAX      DisplayString (SIZE(0..12))
     MAX-ACCESS  not-accessible
     STATUS      current
     DESCRIPTION
@@ -202,7 +188,7 @@ studentId OBJECT-TYPE
     ::= { studentEntry 1 }
 
 studentName OBJECT-TYPE
-    SYNTAX      SnmpAdminString (SIZE(0..128))
+    SYNTAX      DisplayString (SIZE(0..128))
     MAX-ACCESS  read-create
     STATUS      current
     DESCRIPTION
@@ -210,7 +196,7 @@ studentName OBJECT-TYPE
     ::= { studentEntry 2 }
 
 course OBJECT-TYPE
-    SYNTAX      SnmpAdminString (SIZE(0..128))
+    SYNTAX      DisplayString (SIZE(0..128))
     MAX-ACCESS  read-create
     STATUS      current
     DESCRIPTION
@@ -218,7 +204,7 @@ course OBJECT-TYPE
     ::= { studentEntry 3 }
 
 courseYear OBJECT-TYPE
-    SYNTAX      CourseYear
+    SYNTAX      StudentCourseYear
     MAX-ACCESS  read-create
     STATUS      current
     DESCRIPTION
@@ -244,7 +230,7 @@ classTable OBJECT-TYPE
     STATUS      current
     DESCRIPTION
         "Table relating students to rooms at specific times."
-    ::= { universityMib 3 }
+    ::= { classroomMIB 3 }
 
 classEntry OBJECT-TYPE
     SYNTAX      ClassEntry
@@ -257,15 +243,16 @@ classEntry OBJECT-TYPE
     ::= { classTable 1 }
 
 ClassEntry ::= SEQUENCE {
-    classRoomId       RoomId,
-    classStudentId    StudentId,
+    classRoomId       DisplayString,
+    classStudentId    DisplayString,
     classDateTime     DateAndTime,
-    className         SnmpAdminString,
+    className         DisplayString,
+    position          Integer32,
     classRowStatus    RowStatus
 }
 
 classRoomId OBJECT-TYPE
-    SYNTAX      RoomId
+    SYNTAX      DisplayString (SIZE(0..12))
     MAX-ACCESS  not-accessible
     STATUS      current
     DESCRIPTION
@@ -273,7 +260,7 @@ classRoomId OBJECT-TYPE
     ::= { classEntry 1 }
 
 classStudentId OBJECT-TYPE
-    SYNTAX      StudentId
+    SYNTAX      DisplayString (SIZE(0..12))
     MAX-ACCESS  not-accessible
     STATUS      current
     DESCRIPTION
@@ -289,12 +276,20 @@ classDateTime OBJECT-TYPE
     ::= { classEntry 3 }
 
 className OBJECT-TYPE
-    SYNTAX      SnmpAdminString (SIZE(0..128))
+    SYNTAX      DisplayString (SIZE(0..128))
     MAX-ACCESS  read-create
     STATUS      current
     DESCRIPTION
         "Name of the class."
     ::= { classEntry 4 }
+
+position OBJECT-TYPE
+    SYNTAX      Integer32 (0..999)
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Student position in the room."
+    ::= { classEntry 5 }
 
 classRowStatus OBJECT-TYPE
     SYNTAX      RowStatus
@@ -303,7 +298,80 @@ classRowStatus OBJECT-TYPE
     DESCRIPTION
         "The status object used to create, activate or delete
          a class entry."
-    ::= { classEntry 5 }
+    ::= { classEntry 6 }
+
+-- ==========================================================
+-- CONFORMANCE
+-- ==========================================================
+
+classroomMibConformance OBJECT IDENTIFIER ::= { classroomMIB 4 }
+
+classroomMibGroups OBJECT IDENTIFIER ::= { classroomMibConformance 1 }
+
+classroomMibCompliances OBJECT IDENTIFIER ::= { classroomMibConformance 2 }
+
+-- Object Groups
+
+roomGroup OBJECT-GROUP
+    OBJECTS {
+        campus,
+        building,
+        capacity,
+        adminStatus,
+        operStatus
+    }
+    STATUS current
+    DESCRIPTION
+        "A collection of objects providing room information."
+    ::= { classroomMibGroups 1 }
+
+studentGroup OBJECT-GROUP
+    OBJECTS {
+        studentName,
+        course,
+        courseYear
+    }
+    STATUS current
+    DESCRIPTION
+        "A collection of objects providing student information."
+    ::= { classroomMibGroups 2 }
+
+classGroup OBJECT-GROUP
+    OBJECTS {
+        className,
+        position
+    }
+    STATUS current
+    DESCRIPTION
+        "A collection of objects providing class information."
+    ::= { classroomMibGroups 3 }
+
+controlGroup OBJECT-GROUP
+    OBJECTS { 
+        roomRowStatus,
+        studentRowStatus,
+        classRowStatus
+    }
+    STATUS current
+    DESCRIPTION
+        "A collection of objects providing control informatio."
+    ::= { classroomMibGroups 4 }
+
+-- Module Compliance
+
+classroomMibCompliance MODULE-COMPLIANCE
+    STATUS current
+    DESCRIPTION
+        "Compliance statement for agents implementing UNIVERSITY-MIB."
+    MODULE
+        MANDATORY-GROUPS {
+            roomGroup,
+            studentGroup,
+            classGroup
+        }
+        GROUP controlGroup
+            DESCRIPTION "Optional control group"
+    ::= { classroomMibCompliances 1 }
 
 END
 
