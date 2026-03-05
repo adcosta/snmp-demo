@@ -7,7 +7,7 @@ CLASSROOM-MIB DEFINITIONS ::= BEGIN
 IMPORTS
     MODULE-IDENTITY, OBJECT-TYPE, Integer32, 
     Unsigned32, experimental                FROM SNMPv2-SMI
-    RowStatus, DisplayString, DateAndTime, 
+    RowStatus, DisplayString, 
     TEXTUAL-CONVENTION                      FROM SNMPv2-TC
     OBJECT-GROUP, MODULE-COMPLIANCE         FROM SNMPv2-CONF;
 
@@ -61,6 +61,13 @@ StudentCourseYear ::= TEXTUAL-CONVENTION
     DESCRIPTION
         "The academic year of the student within the course."
     SYNTAX INTEGER { first(1), second(2), third(3), fourth(4), fifth(5) }
+
+SimpleDateTime ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT "16a"
+    STATUS current
+    DESCRIPTION
+        "Human readable date/time formatted as DD-MM-YYYY HH:MM."
+    SYNTAX OCTET STRING (SIZE(16))
 
 -- ==========================================================
 -- ROOMS
@@ -245,7 +252,7 @@ classEntry OBJECT-TYPE
 ClassEntry ::= SEQUENCE {
     classRoomId       DisplayString,
     classStudentId    DisplayString,
-    classDateTime     DateAndTime,
+    classDateTime     SimpleDateTime,
     className         DisplayString,
     position          Integer32,
     classRowStatus    RowStatus
@@ -268,7 +275,7 @@ classStudentId OBJECT-TYPE
     ::= { classEntry 2 }
 
 classDateTime OBJECT-TYPE
-    SYNTAX      DateAndTime
+    SYNTAX      SimpleDateTime
     MAX-ACCESS  not-accessible
     STATUS      current
     DESCRIPTION
