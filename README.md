@@ -210,7 +210,11 @@ END
 
 ### Etapa 4:  Validar a MIB
 
-Eliminar primeiro apenas os erros...
+Neste repositório há duas versões da MIB, uma já corrigida (OK) e outra com muitos erros (NOTOK) que pode ser usada para testes.
+
+A ferramenta smilint suporta uma  opção -l para definir o nível de avisos que são enviados (warnings). O default é 3. Podemos aumentar.
+
+Devemos primeiro liminar primeiro apenas os erros mais graves, colocando a verbosidade a 3 apenas:
 
 ```bash
 smilint -s -m -l 3  ./CLASSROOM-MIB.mib
@@ -222,15 +226,13 @@ smilint -s -m -l 3  ./CLASSROOM-MIB.mib
 smilint -s -m -l 6 ./CLASSROOM-MIB.mib
 ```
 
-Nota: a opção -l 6 aumenta o nível de avisos que são enviados (warnings). O default é 3.
-
+Idealmente devemos ter 0 erros e 0 avisos!
 Depois será melhor copiar a MIB validada para a uma das pastas em que as ferramentas SNMP as podem ler. Normalmente em ```~/snmp/mibs``` mas pode ser noutro local. 
 
 ```bash
 mkdir -p ~/snmp/mibs
 cp ./CLASSROOM-MIB.mib ~/snmp/mibs/CLASSROOM-MIB.txt
 ```
-
 
 O que é obrigatório fazer é definir as variáveis de ambiente adequadas para ajudar a localizar as MIBS. Algo do género, que pode mesmo ser colocado no ficheiro de configuração da bash ```.bashrc```ou equivalente:
 
@@ -288,44 +290,85 @@ mkdir -p data
 snmpsim-record-mibs --mib-module CLASSROOM-MIB --output-file data/classroom-auto.snmprec
 ```
 
-ou gerar de forma mais manual e controlada (4 alunos, com nomes editados):
+Podemos limitar os dados a um OID inicial (start-object) e um OID final (stop-object). Por exemplo, gerar dados apenas para tabela de salas 
+e de alunos mas não gerar presenças na sala de aula:
 
 ```bash
 mkdir -p data
-snmpsim-record-mibs --mib-module CLASSROOM-MIB --output-file data/classroom-manual.snmprec --table-size=4 --manual-values
+snmpsim-record-mibs --mib-module CLASSROOM-MIB --output-file data/classroom-auto.snmprec --start-object CLASSROOM-MIB::roomTable --stop-object CLASSROOM-MIB::classTable
 ```
+
+
+ou gerar de forma mais manual e controlada (2 alunos, com nomes editados):
+
+```bash
+mkdir -p data
+snmpsim-record-mibs --mib-module CLASSROOM-MIB --output-file data/classroom-manual.snmprec --table-size=2 --manual-values
+```
+
+NOTA: este gerador de dados, não gosta de tipos complexos e pode dar erro. O ChatGPT ou outos LLM, podem gerar dados no formato pretendido (snmprec) desde que conheçam a MIB.
 
 Exemplo de dados num ficheiro criado manualmente (*classroom-manual.snmprec*):
 
 ```txt
-1.3.6.1.3.2025.1.1.0|4|Lab 1.38 - Ed 11 - Campus de Azurem
-1.3.6.1.3.2025.1.2.0|2|30
-1.3.6.1.3.2025.1.3.0|2|1
-1.3.6.1.3.2025.1.4.0|2|2
-1.3.6.1.3.2025.1.10.1.1.11111|66|11111
-1.3.6.1.3.2025.1.10.1.1.22222|66|22222
-1.3.6.1.3.2025.1.10.1.1.33333|66|33333
-1.3.6.1.3.2025.1.10.1.1.44444|66|44444
-1.3.6.1.3.2025.1.10.1.2.11111|4|Alvaro Campos
-1.3.6.1.3.2025.1.10.1.2.22222|4|Rita Manuela
-1.3.6.1.3.2025.1.10.1.2.33333|4|Fernando Manuel
-1.3.6.1.3.2025.1.10.1.2.44444|4|Rui Silva
-1.3.6.1.3.2025.1.10.1.3.11111|2|4
-1.3.6.1.3.2025.1.10.1.3.22222|2|1
-1.3.6.1.3.2025.1.10.1.3.33333|2|1
-1.3.6.1.3.2025.1.10.1.3.44444|2|5
-1.3.6.1.3.2025.1.10.1.4.11111|4|Mestrado Integrado em Eng. Telecomunicações e Informática
-1.3.6.1.3.2025.1.10.1.4.22222|4|Mestrado em Eng. Telecomunicações e Informática
-1.3.6.1.3.2025.1.10.1.4.33333|4|Mestrado em Eng. Telecomunicações e Informática
-1.3.6.1.3.2025.1.10.1.4.44444|4|Mestrado Integrado em Eng. Telecomunicações e Informática
-1.3.6.1.3.2025.1.10.1.5.11111|66|11
-1.3.6.1.3.2025.1.10.1.5.22222|66|12
-1.3.6.1.3.2025.1.10.1.5.33333|66|20
-1.3.6.1.3.2025.1.10.1.5.44444|66|21
-1.3.6.1.3.2025.1.10.1.6.11111|2|3
-1.3.6.1.3.2025.1.10.1.6.22222|2|1
-1.3.6.1.3.2025.1.10.1.6.33333|2|1
-1.3.6.1.3.2025.1.10.1.6.44444|2|6
+# =========================================
+# CLASSROOM-MIB simulated data
+# =========================================
+
+# ---------- ROOM TABLE ----------
+# Tabela usa DisplayString como índice, portanto o SNMP codifica assim:
+# <length>.<ascii>.<ascii>...
+# roomId."2.24" ==> lenght 4, 2 -> 50;  . -> 46;  2 -> 50; 4 -> 52
+
+# roomId
+1.3.6.1.3.2026.1.1.1.4.50.46.50.52|4|2.24
+1.3.6.1.3.2026.1.1.1.4.50.46.50.53|4|2.25
+
+# campus
+1.3.6.1.3.2026.1.1.2.4.50.46.50.52|4|Gualtar
+1.3.6.1.3.2026.1.1.2.4.50.46.50.53|4|Gualtar
+
+# building
+1.3.6.1.3.2026.1.1.3.4.50.46.50.52|4|DI
+1.3.6.1.3.2026.1.1.3.4.50.46.50.53|4|DI
+
+# capacity
+1.3.6.1.3.2026.1.1.4.4.50.46.50.52|66|40
+1.3.6.1.3.2026.1.1.4.4.50.46.50.53|66|30
+
+# adminStatus
+1.3.6.1.3.2026.1.1.5.4.50.46.50.52|2|1
+1.3.6.1.3.2026.1.1.5.4.50.46.50.53|2|1
+
+# operStatus
+1.3.6.1.3.2026.1.1.6.4.50.46.50.52|2|1
+1.3.6.1.3.2026.1.1.6.4.50.46.50.53|2|1
+
+
+# ---------- STUDENT TABLE ----------
+
+# studentId
+1.3.6.1.3.2026.2.1.1.5.97.56.56.56.56|4|a8888
+1.3.6.1.3.2026.2.1.1.5.97.57.57.57.57|4|a9999
+
+# studentName
+1.3.6.1.3.2026.2.1.2.5.97.56.56.56.56|4|Joao Silva
+1.3.6.1.3.2026.2.1.2.5.97.57.57.57.57|4|Ana Costa
+
+# course
+1.3.6.1.3.2026.2.1.3.5.97.56.56.56.56|4|LEI
+1.3.6.1.3.2026.2.1.3.5.97.57.57.57.57|4|LEI
+
+# courseYear
+1.3.6.1.3.2026.2.1.4.5.97.56.56.56.56|2|3
+1.3.6.1.3.2026.2.1.4.5.97.57.57.57.57|2|2
+
+# ---------- CLASS TABLE ----------
+# roomId="2.24", studentId="a9999", classDateTime="05-03-2026 13:00"
+
+1.3.6.1.3.2026.3.1.4.4.50.46.50.52.5.97.57.57.57.57.16.48.53.45.48.51.45.50.48.50.54.32.49.51.58.48.48|4|Network Management
+1.3.6.1.3.2026.3.1.5.4.50.46.50.52.5.97.57.57.57.57.16.48.53.45.48.51.45.50.48.50.54.32.49.51.58.48.48|2|12
+
 ```
 
 ### Etapa 6:  Executar o simulador
@@ -340,21 +383,26 @@ O simulador indica que as comunidades de acesso são derivados do nome dos fiche
 
 ```bash
 snmpwalk -v2c -c classroom-manual 127.0.0.1:2001 experimental.classroomMIB
-snmpwalk -v2c -c classroom-manual 127.0.0.1:2001 .1.3.6.1.3.2025
-snmptable -v2c -c classroom-manual  127.0.0.1:2001 experimental.classroomMIB.classroomObjects.studentTable
+snmpwalk -v2c -c classroom-manual 127.0.0.1:2001 .1.3.6.1.3.2026
+snmpwalk -v2c -c classroom-manual  127.0.0.1:2001 CLASSROOM-MIB::classroomMIB
 
-snmpwalk -v2c -c classroom-auto  127.0.0.1:2001 experimental.classroomMIB
-snmpwalk -v2c -c classroom-auto 127.0.0.1:2001 .1.3.6.1.3.2025
-snmptable -v2c -c classroom-auto  127.0.0.1:2001 experimental.classroomMIB.classroomObjects.studentTable
+snmptable -v2c -c classroom-manual  127.0.0.1:2001 CLASSROOM-MIB::studentTable
+snmptable -v2c -c classroom-manual  127.0.0.1:2001 CLASSROOM-MIB::roomTable
+
+snmpwalk -v2c -c classroom-auto 127.0.0.1:2001 experimental.classroomMIB
+snmpwalk -v2c -c classroom-auto 127.0.0.1:2001 .1.3.6.1.3.2026
+snmpwalk -v2c -c classroom-auto  127.0.0.1:2001 CLASSROOM-MIB::classroomMIB
+
+snmptable -v2c -c classroom-auto  127.0.0.1:2001 CLASSROOM-MIB::studentTable
+snmptable -v2c -c classroom-auto  127.0.0.1:2001 CLASSROOM-MIB::roomTable
 
 ```
 
 ## Perguntas
 
-- Como podemos melhorar o modelo para em vez de apenas uma sala ter todas as salas do Campus? (redefinição da MIB)
 - Como responder às seguintes perguntas  (comandos SNMP):
-    - "quantos lugares tem a sala"
-    - "quantos alunos estão na sala"
+    - "quantos lugares tem a sala X"
+    - "quantos alunos estão na sala Y"
     - "quais os números e nomes dos alunos nos 3 primeiros lugares sentados"
 - Implemente um cliente SNMP simples (ex: usando PySNMP) para obter uma das respostas anteriores
 - Pense num algoritmo para marcar as presenças dos alunos na aula de GVR (por exemplo)
