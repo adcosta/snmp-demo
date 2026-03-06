@@ -420,8 +420,16 @@ snmpset -v2c -c classroom-manual 127.0.0.1:2001 \
   CLASSROOM-MIB::capacity.\"2.26\" u 40 \
   CLASSROOM-MIB::adminStatus.\"2.26\" i 1 \
   CLASSROOM-MIB::roomRowStatus.\"2.26\" i 40
-
 ```
+
+Recomendações:
+
+- Não usar chaves complexas nas tabelas da MIB
+- a chave "roomId"."studentId"."dateTime" é demasiado complexa para gerir manualmente e via SNMP
+- optar por indices id numéricos simples, e garantir consistência dos dados na implementação (cliente e agente)
+- as MIBs não são bases de dados genéricas --- este exercício é meramente académico
+
+
 ## Referências
 
 - [git snmp-demo (Exercicio SNMP)](https://github.com/adcosta/snmp-demo)
