@@ -407,6 +407,21 @@ snmptable -v2c -c classroom-auto  127.0.0.1:2001 CLASSROOM-MIB::roomTable
 - Implemente um cliente SNMP simples (ex: usando PySNMP) para obter uma das respostas anteriores
 - Pense num algoritmo para marcar as presenças dos alunos na aula de GVR (por exemplo)
 
+Exemplo de queries:
+
+```bash
+snmpget -v2c -c classroom-manual 127.0.0.1:2001 CLASSROOM-MIB::capacity.\"2.24\"
+
+snmpget -v2c -c classroom-manual 127.0.0.1:2001 'CLASSROOM-MIB::capacity."2.24"'
+
+snmpset -v2c -c classroom-manual 127.0.0.1:2001 \
+  CLASSROOM-MIB::campus.\"2.26\" s "Gualtar" \
+  CLASSROOM-MIB::building.\"2.26\" s "DI" \
+  CLASSROOM-MIB::capacity.\"2.26\" u 40 \
+  CLASSROOM-MIB::adminStatus.\"2.26\" i 1 \
+  CLASSROOM-MIB::roomRowStatus.\"2.26\" i 40
+
+```
 ## Referências
 
 - [git snmp-demo (Exercicio SNMP)](https://github.com/adcosta/snmp-demo)
