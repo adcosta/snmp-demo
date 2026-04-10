@@ -1,0 +1,384 @@
+CLASSROOM-MIB DEFINITIONS ::= BEGIN
+
+--
+-- MIB objects for classroom monitoring example implementations
+--
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, Integer32, 
+    Unsigned32, experimental                FROM SNMPv2-SMI
+    RowStatus, DisplayString, 
+    TEXTUAL-CONVENTION                      FROM SNMPv2-TC
+    OBJECT-GROUP, MODULE-COMPLIANCE         FROM SNMPv2-CONF;
+
+-- MODLUE IDENTITY: classromMIB
+-- REVISION e LAST-UPDATED sao datas no formato AAAAMMDDHHMM
+-- Tem de haver um REVISION igual a LAST-UPDATED 
+
+
+classroomMIB MODULE-IDENTITY
+    LAST-UPDATED "202602270000Z"
+    ORGANIZATION "www.uminho.pt"
+    CONTACT-INFO 
+    "postal:   Campus de Gualtar
+                4710-057 BRAGA
+                Portugal
+      email:    costa@di.uminho.pt"
+    DESCRIPTION
+    "MIB objects for classroom monitoring example implementations"
+    REVISION     "202602270000Z"
+    DESCRIPTION
+    "Classroom monitoring MIB: a single room (scalars) and a table of students."
+    ::= { experimental 2026 }
+
+-- ==========================================================
+-- TEXTUAL CONVENTIONS
+-- ==========================================================
+
+
+RoomAdminStatus ::= TEXTUAL-CONVENTION
+    STATUS current
+    DESCRIPTION
+        "Administrative status of a room."
+    SYNTAX INTEGER {
+        open(1),
+        reserved(2),
+        closed(3)
+    }
+
+RoomOperStatus ::= TEXTUAL-CONVENTION
+    STATUS current
+    DESCRIPTION
+        "Operational state of a room."
+    SYNTAX INTEGER {
+        free(1),
+        inUse(2),
+        unusable(3)
+    }
+
+StudentCourseYear ::= TEXTUAL-CONVENTION
+    STATUS current
+    DESCRIPTION
+        "The academic year of the student within the course."
+    SYNTAX INTEGER { first(1), second(2), third(3), fourth(4), fifth(5) }
+
+SimpleDateTime ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT "16a"
+    STATUS current
+    DESCRIPTION
+        "Human readable date/time formatted as DD-MM-YYYY HH:MM."
+    SYNTAX OCTET STRING (SIZE(16))
+
+-- ==========================================================
+-- ROOMS
+-- ==========================================================
+
+roomTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF RoomEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Table containing information about university rooms."
+    ::= { classroomMIB 1 }
+
+roomEntry OBJECT-TYPE
+    SYNTAX      RoomEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry describing a single room."
+    INDEX       { roomId }
+    ::= { roomTable 1 }
+
+RoomEntry ::= SEQUENCE {
+    roomId          DisplayString,
+    campus          DisplayString,
+    building        DisplayString,
+    capacity        Unsigned32,
+    adminStatus     RoomAdminStatus,
+    operStatus      RoomOperStatus,
+    roomRowStatus   RowStatus
+}
+
+roomId OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE(0..12))
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "The unique identifier of the room."
+    ::= { roomEntry 1 }
+
+campus OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE(0..64))
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The campus where the room is located."
+    ::= { roomEntry 2 }
+
+building OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE(0..64))
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The building where the room is located."
+    ::= { roomEntry 3 }
+
+capacity OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Maximum number of students that the room can accommodate."
+    ::= { roomEntry 4 }
+
+adminStatus OBJECT-TYPE
+    SYNTAX      RoomAdminStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The administrative state of the room."
+    ::= { roomEntry 5 }
+
+operStatus OBJECT-TYPE
+    SYNTAX      RoomOperStatus
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The current operational state of the room."
+    ::= { roomEntry 6 }
+
+roomRowStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The status object used to create, activate or delete
+         a room entry."
+    ::= { roomEntry 7 }
+
+-- ==========================================================
+-- STUDENTS
+-- ==========================================================
+
+studentTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF StudentEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Table containing information about students."
+    ::= { classroomMIB 2 }
+
+studentEntry OBJECT-TYPE
+    SYNTAX      StudentEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry describing a single student."
+    INDEX       { studentId }
+    ::= { studentTable 1 }
+
+StudentEntry ::= SEQUENCE {
+    studentId        DisplayString,
+    studentName      DisplayString,
+    course           DisplayString,
+    courseYear       StudentCourseYear,
+    studentRowStatus RowStatus
+}
+
+studentId OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE(0..12))
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "The unique identifier of the student."
+    ::= { studentEntry 1 }
+
+studentName OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE(0..128))
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The full name of the student."
+    ::= { studentEntry 2 }
+
+course OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE(0..128))
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The academic course in which the student is enrolled."
+    ::= { studentEntry 3 }
+
+courseYear OBJECT-TYPE
+    SYNTAX      StudentCourseYear
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The current academic year of the student."
+    ::= { studentEntry 4 }
+
+studentRowStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The status object used to create, activate or delete
+         a student entry."
+    ::= { studentEntry 5 }
+
+-- ==========================================================
+-- CLASSES
+-- ==========================================================
+
+classTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF ClassEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Table relating students to rooms at specific times."
+    ::= { classroomMIB 3 }
+
+classEntry OBJECT-TYPE
+    SYNTAX      ClassEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry representing a class occurrence for a
+         given student in a specific room and time."
+    INDEX       { roomId, studentId, classDateTime }
+    ::= { classTable 1 }
+
+ClassEntry ::= SEQUENCE {
+    classRoomId       DisplayString,
+    classStudentId    DisplayString,
+    classDateTime     SimpleDateTime,
+    className         DisplayString,
+    position          Integer32,
+    classRowStatus    RowStatus
+}
+
+classRoomId OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE(0..12))
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Identifier of the room where the class takes place."
+    ::= { classEntry 1 }
+
+classStudentId OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE(0..12))
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Identifier of the student attending the class."
+    ::= { classEntry 2 }
+
+classDateTime OBJECT-TYPE
+    SYNTAX      SimpleDateTime
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Date and time when the class takes place."
+    ::= { classEntry 3 }
+
+className OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE(0..128))
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Name of the class."
+    ::= { classEntry 4 }
+
+position OBJECT-TYPE
+    SYNTAX      Integer32 (0..999)
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Student position in the room."
+    ::= { classEntry 5 }
+
+classRowStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The status object used to create, activate or delete
+         a class entry."
+    ::= { classEntry 6 }
+
+-- ==========================================================
+-- CONFORMANCE
+-- ==========================================================
+
+classroomMibConformance OBJECT IDENTIFIER ::= { classroomMIB 4 }
+
+classroomMibGroups OBJECT IDENTIFIER ::= { classroomMibConformance 1 }
+
+classroomMibCompliances OBJECT IDENTIFIER ::= { classroomMibConformance 2 }
+
+-- Object Groups
+
+roomGroup OBJECT-GROUP
+    OBJECTS {
+        campus,
+        building,
+        capacity,
+        adminStatus,
+        operStatus
+    }
+    STATUS current
+    DESCRIPTION
+        "A collection of objects providing room information."
+    ::= { classroomMibGroups 1 }
+
+studentGroup OBJECT-GROUP
+    OBJECTS {
+        studentName,
+        course,
+        courseYear
+    }
+    STATUS current
+    DESCRIPTION
+        "A collection of objects providing student information."
+    ::= { classroomMibGroups 2 }
+
+classGroup OBJECT-GROUP
+    OBJECTS {
+        className,
+        position
+    }
+    STATUS current
+    DESCRIPTION
+        "A collection of objects providing class information."
+    ::= { classroomMibGroups 3 }
+
+controlGroup OBJECT-GROUP
+    OBJECTS { 
+        roomRowStatus,
+        studentRowStatus,
+        classRowStatus
+    }
+    STATUS current
+    DESCRIPTION
+        "A collection of objects providing control informatio."
+    ::= { classroomMibGroups 4 }
+
+-- Module Compliance
+
+classroomMibCompliance MODULE-COMPLIANCE
+    STATUS current
+    DESCRIPTION
+        "Compliance statement for agents implementing UNIVERSITY-MIB."
+    MODULE
+        MANDATORY-GROUPS {
+            roomGroup,
+            studentGroup,
+            classGroup
+        }
+        GROUP controlGroup
+            DESCRIPTION "Optional control group"
+    ::= { classroomMibCompliances 1 }
+
+END
+

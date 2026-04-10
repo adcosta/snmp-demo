@@ -1,0 +1,95 @@
+GR-RFID-MIB DEFINITIONS ::= BEGIN
+
+--
+-- MIB do exercicio da aula... para leitores RF-ID
+--
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, Integer32, experimental,
+    NOTIFICATION-TYPE                       FROM SNMPv2-SMI
+    DisplayString, RowStatus, StorageType   FROM SNMPv2-TC
+    InetAddressType, InetAddress            FROM INET-ADDRESS-MIB
+;
+
+grRFID MODULE-IDENTITY
+    LAST-UPDATED "201810220000Z"
+    ORGANIZATION "www.uminho.pt"
+    CONTACT-INFO    
+	    "Aula de Gestao de Redes do MIETI"
+    DESCRIPTION
+	   "Example MIB objects for agent module example implementations"
+    REVISION "201810220000Z"
+    DESCRIPTION
+	   "Example MIB objects for agent module example implementations"
+    ::= { experimental 2018 }
+
+--
+-- top level structure
+--
+scanRFID       OBJECT IDENTIFIER ::= { grRFID 1 }
+
+--
+-- The scanRFID Group
+--
+
+scanRFIDZone OBJECT-TYPE
+    SYNTAX  DisplayString
+    MAX-ACCESS  read-only
+    STATUS  current
+    DESCRIPTION "The name of the zone to where the areas/antennas belong."
+    ::= { scanRFID 1 }
+
+scanRFIDNumberOfAreas OBJECT-TYPE
+    SYNTAX  INTEGER
+    MAX-ACCESS  read-only
+    STATUS  current
+    DESCRIPTION "The number of areas/antennas in the zone."
+    ::= { scanRFID 2 }
+
+-- The scanRFIDTable table
+
+scanRFIDTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF ScanRFIDEntry
+    MAX-ACCESS  not-accessible
+    STATUS  current
+    DESCRIPTION "This entity's table of antennas."
+    ::= { scanRFID 3 }
+
+scanRFIDEntry OBJECT-TYPE
+    SYNTAX  ScanRFIDEntry
+    MAX-ACCESS  not-accessible
+    STATUS  current
+    DESCRIPTION "An entry (row) for information about data scanned by one antenna in one area. The key for the table is the antenna's index number."
+    INDEX   { scanRFIDIndex }
+    ::= { scanRFIDTable 1 }
+
+ScanRFIDEntry ::= SEQUENCE {
+        scanRFIDIndex  INTEGER,
+        scanRFIDTag    OCTET STRING,
+        scanRFIDArea   DisplayString
+    }
+
+scanRFIDIndex OBJECT-TYPE
+    SYNTAX  INTEGER (0..127)
+    MAX-ACCESS  read-only
+    STATUS  current
+    DESCRIPTION "The index of the antenna in this group of antennas."
+    ::= { scanRFIDEntry 1 }
+
+scanRFIDTag OBJECT-TYPE
+    SYNTAX  OCTET STRING (SIZE (6))
+    MAX-ACCESS  read-only
+    STATUS  current
+    DESCRIPTION "The scanned value of the tag in the area. A value 
+        under 000000 means there's no tag in the area."
+    ::= { scanRFIDEntry 2 }
+
+scanRFIDArea OBJECT-TYPE
+    SYNTAX  DisplayString
+    MAX-ACCESS  read-only
+    STATUS  current
+    DESCRIPTION "A text containing the name identifying the production area where the antenna is installed. Examples: Motor, Travoes, Caixa, Pintura, Lavagem, etc."
+    ::= { scanRFIDEntry 3 }	
+
+END
+

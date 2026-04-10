@@ -1,0 +1,160 @@
+# ============================================================
+#  SNMP Demo — Network Monitoring Demonstrator
+#
+#  Topologia funcional:
+#
+#      [iperf-client] ---- leftnet ---- [ router ] ---- rightnet ---- [iperf-server]
+#        10.10.1.10                      10.10.1.254                  10.10.2.10
+#                                        10.10.2.254
+#
+#                                   |
+#                                   |  SNMP polling (UDP/161)
+#                                   |
+#                               [ telegraf ]
+#                                   |
+#                                   |  métricas
+#                                   v
+#                               [ influxdb ]
+#                                   |
+#                                   |  datasource
+#                                   v
+#                               [ grafana ]
+#
+#  Redes Docker:
+#    - leftnet  : segmento de tráfego entre iperf-client e router
+#    - rightnet : segmento de tráfego entre router e iperf-server
+#    - monnet   : rede de observabilidade (telegraf, influxdb, grafana)
+#
+#  Função dos componentes:
+#    - router       : router Linux com ip_forward=1 e agente SNMP (net-snmp)
+#    - iperf-client : gerador de tráfego
+#    - iperf-server : recetor de tráfego
+#    - telegraf     : recolha SNMP do router e envio para InfluxDB
+#    - influxdb     : base de dados temporal das métricas
+#    - grafana      : visualização e dashboarding
+#
+#  Objetivo:
+#    Demonstrar monitorização SNMP de um router Linux com duas interfaces,
+#    geração de tráfego atravessando o router e visualização gráfica de
+#    métricas IF-MIB/IP-MIB numa stack moderna de observabilidade.
+# ============================================================
+
+networks:
+  leftnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.1.0/24
+
+  rightnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.2.0/24
+
+  monnet:
+    driver: bridge
+
+services:
+  router:
+    build: ./router
+    container_name: router
+    hostname: router
+    cap_add:
+      - NET_ADMIN
+    sysctls:
+      - net.ipv4.ip_forward=1
+    networks:
+      leftnet:
+        ipv4_address: 10.10.1.254
+      rightnet:
+        ipv4_address: 10.10.2.254
+    ports:
+      - "161:161/udp"
+    restart: unless-stopped
+
+  iperf-server:
+    build:
+      context: ./host
+      args:
+        ROLE: server
+    container_name: iperf-server
+    hostname: iperf-server
+    cap_add:
+      - NET_ADMIN
+    networks:
+      rightnet:
+        ipv4_address: 10.10.2.10
+    environment:
+      - ROLE=server
+      - GW=10.10.2.254
+    depends_on:
+      - router
+    restart: unless-stopped
+
+  iperf-client:
+    build:
+      context: ./host
+      args:
+        ROLE: client
+    container_name: iperf-client
+    hostname: iperf-client
+    cap_add:
+      - NET_ADMIN
+    networks:
+      leftnet:
+        ipv4_address: 10.10.1.10
+    environment:
+      - ROLE=client
+      - GW=10.10.1.254
+      - SERVER=10.10.2.10
+    depends_on:
+      - iperf-server
+      - router
+    restart: unless-stopped
+
+  influxdb:
+    image: influxdb:1.8
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      - INFLUXDB_DB=snmp
+    networks:
+      - monnet
+    volumes:
+      - influxdb-data:/var/lib/influxdb
+    restart: unless-stopped
+
+  telegraf:
+    image: telegraf:1.38
+    container_name: telegraf
+    depends_on:
+      - influxdb
+      - router
+    volumes:
+      - ./telegraf//mibs:/usr/share/snmp/mibs
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    networks:
+      - leftnet
+      - monnet
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    depends_on:
+      - influxdb
+    ports:
+      - "3000:3000"
+    networks:
+      - monnet
+    volumes:
+      - grafana-data:/var/lib/grafana
+    restart: unless-stopped
+
+volumes:
+    influxdb-data:
+    grafana-data:
+
+
