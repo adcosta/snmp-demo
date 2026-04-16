@@ -37,6 +37,8 @@
 #    Demonstrar monitorização SNMP de um router Linux com duas interfaces,
 #    geração de tráfego atravessando o router e visualização gráfica de
 #    métricas IF-MIB/IP-MIB numa stack moderna de observabilidade.
+#    Inclui também um agente SNMP simulado (snmpsim) com a CLASSROOM-MIB
+#    para demonstrar monitorização de dados académicos (salas, alunos, aulas).
 # ============================================================
 
 networks:
@@ -53,6 +55,10 @@ networks:
         - subnet: 10.10.2.0/24
 
   monnet:
+    driver: bridge
+
+  # Rede isolada para o simulador classroom (snmpsim ↔ telegraf)
+  classnet:
     driver: bridge
 
 services:
@@ -113,6 +119,14 @@ services:
       - router
     restart: unless-stopped
 
+  snmpsim:
+    build: ./snmpsim
+    container_name: snmpsim
+    hostname: snmpsim
+    networks:
+      - classnet
+    restart: unless-stopped
+
   influxdb:
     image: influxdb:1.8
     container_name: influxdb
@@ -124,27 +138,38 @@ services:
       - monnet
     volumes:
       - influxdb-data:/var/lib/influxdb
+    healthcheck:
+      test: ["CMD", "influx", "-execute", "SHOW DATABASES"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
   telegraf:
     image: telegraf:1.38
     container_name: telegraf
     depends_on:
-      - influxdb
-      - router
+      influxdb:
+        condition: service_healthy
+      router:
+        condition: service_started
+      snmpsim:
+        condition: service_started
     volumes:
       - ./telegraf//mibs:/usr/share/snmp/mibs
       - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
     networks:
       - leftnet
       - monnet
+      - classnet
     restart: unless-stopped
 
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     depends_on:
-      - influxdb
+      influxdb:
+        condition: service_healthy
     ports:
       - "3000:3000"
     networks:
