@@ -60,6 +60,8 @@ iso(1).org(3).dod(6).internet(1).experimental(3)
 
 ## Mermaid (renderiza no GitHub / GitLab)
 
+Ficheiro separado: [`classroom-mib-tree.mmd`](./classroom-mib-tree.mmd)
+
 ```mermaid
 %%{init: {
   "theme": "base",
