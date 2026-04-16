@@ -1,0 +1,491 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 10,
+      "title": "Salas",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [ { "color": "blue", "value": null } ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "id": 11,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "/^Count$/",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.4.2",
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": { "include": { "names": ["capacity"] } }
+        },
+        {
+          "id": "reduce",
+          "options": { "reducers": ["count"] }
+        }
+      ],
+      "targets": [
+        {
+          "alias": "",
+          "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+          "groupBy": [
+            { "params": ["campus"],   "type": "tag" },
+            { "params": ["building"], "type": "tag" },
+            { "params": ["index"],    "type": "tag" },
+            { "params": ["none"],     "type": "fill" }
+          ],
+          "measurement": "classroom_rooms",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT last(\"capacity\") AS \"capacity\" FROM \"classroom_rooms\" WHERE $timeFilter GROUP BY \"campus\", \"building\", \"index\" fill(none)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Nº de Salas",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [ { "color": "green", "value": null } ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "campus" },
+            "properties": [
+              { "id": "displayName", "value": "Campus" },
+              { "id": "custom.width", "value": 100 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "building" },
+            "properties": [
+              { "id": "displayName", "value": "Edifício" },
+              { "id": "custom.width", "value": 100 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "capacity" },
+            "properties": [
+              { "id": "displayName", "value": "Capacidade" },
+              { "id": "custom.width", "value": 100 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "adminStatus" },
+            "properties": [
+              { "id": "displayName", "value": "Admin Status" },
+              { "id": "custom.width", "value": 130 },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "1": { "text": "open",     "color": "green",  "index": 0 } } },
+                  { "type": "value", "options": { "2": { "text": "reserved", "color": "yellow", "index": 1 } } },
+                  { "type": "value", "options": { "3": { "text": "closed",   "color": "red",    "index": 2 } } }
+                ]
+              },
+              { "id": "custom.cellOptions", "value": { "type": "color-background" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "operStatus" },
+            "properties": [
+              { "id": "displayName", "value": "Oper Status" },
+              { "id": "custom.width", "value": 130 },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "1": { "text": "free",     "color": "green",  "index": 0 } } },
+                  { "type": "value", "options": { "2": { "text": "inUse",    "color": "orange", "index": 1 } } },
+                  { "type": "value", "options": { "3": { "text": "unusable", "color": "red",    "index": 2 } } }
+                ]
+              },
+              { "id": "custom.cellOptions", "value": { "type": "color-background" } }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 4, "w": 20, "x": 4, "y": 1 },
+      "id": 12,
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": [ { "desc": false, "displayName": "Edifício" } ]
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+          "groupBy": [
+            { "params": ["campus"],   "type": "tag" },
+            { "params": ["building"], "type": "tag" },
+            { "params": ["index"],    "type": "tag" },
+            { "params": ["none"],     "type": "fill" }
+          ],
+          "measurement": "classroom_rooms",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT last(\"capacity\") AS \"capacity\", last(\"adminStatus\") AS \"adminStatus\", last(\"operStatus\") AS \"operStatus\" FROM \"classroom_rooms\" WHERE $timeFilter GROUP BY \"campus\", \"building\", \"index\" fill(none)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Estado das Salas",
+      "type": "table"
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 20,
+      "title": "Alunos",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [ { "color": "purple", "value": null } ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 4, "x": 0, "y": 6 },
+      "id": 21,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "/^Count$/",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.4.2",
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": { "include": { "names": ["courseYear"] } }
+        },
+        {
+          "id": "reduce",
+          "options": { "reducers": ["count"] }
+        }
+      ],
+      "targets": [
+        {
+          "alias": "",
+          "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+          "groupBy": [
+            { "params": ["studentName"], "type": "tag" },
+            { "params": ["course"],      "type": "tag" },
+            { "params": ["none"],        "type": "fill" }
+          ],
+          "measurement": "classroom_students",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT last(\"courseYear\") AS \"courseYear\" FROM \"classroom_students\" WHERE $timeFilter GROUP BY \"studentName\", \"course\" fill(none)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Nº de Alunos",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [ { "color": "green", "value": null } ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "studentName" },
+            "properties": [
+              { "id": "displayName", "value": "Nome" },
+              { "id": "custom.width", "value": 160 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "course" },
+            "properties": [
+              { "id": "displayName", "value": "Curso" },
+              { "id": "custom.width", "value": 80 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "courseYear" },
+            "properties": [
+              { "id": "displayName", "value": "Ano" },
+              { "id": "custom.width", "value": 80 },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "1": { "text": "1º ano", "index": 0 } } },
+                  { "type": "value", "options": { "2": { "text": "2º ano", "index": 1 } } },
+                  { "type": "value", "options": { "3": { "text": "3º ano", "index": 2 } } },
+                  { "type": "value", "options": { "4": { "text": "4º ano", "index": 3 } } },
+                  { "type": "value", "options": { "5": { "text": "5º ano", "index": 4 } } }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 5, "w": 20, "x": 4, "y": 6 },
+      "id": 22,
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": [ { "desc": false, "displayName": "Nome" } ]
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+          "groupBy": [
+            { "params": ["studentName"], "type": "tag" },
+            { "params": ["course"],      "type": "tag" },
+            { "params": ["none"],        "type": "fill" }
+          ],
+          "measurement": "classroom_students",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT last(\"courseYear\") AS \"courseYear\" FROM \"classroom_students\" WHERE $timeFilter GROUP BY \"studentName\", \"course\" fill(none)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Lista de Alunos",
+      "type": "table"
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 11 },
+      "id": 30,
+      "title": "Aulas",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [ { "color": "orange", "value": null } ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 4, "x": 0, "y": 12 },
+      "id": 31,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "/^Count$/",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.4.2",
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": { "include": { "names": ["position"] } }
+        },
+        {
+          "id": "reduce",
+          "options": { "reducers": ["count"] }
+        }
+      ],
+      "targets": [
+        {
+          "alias": "",
+          "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+          "groupBy": [
+            { "params": ["className"], "type": "tag" },
+            { "params": ["index"],     "type": "tag" },
+            { "params": ["none"],      "type": "fill" }
+          ],
+          "measurement": "classroom_classes",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT last(\"position\") AS \"position\" FROM \"classroom_classes\" WHERE $timeFilter GROUP BY \"className\", \"index\" fill(none)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Nº de Presenças",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [ { "color": "green", "value": null } ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "className" },
+            "properties": [
+              { "id": "displayName", "value": "Disciplina" },
+              { "id": "custom.width", "value": 200 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "position" },
+            "properties": [
+              { "id": "displayName", "value": "Lugar" },
+              { "id": "custom.width", "value": 80 }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 5, "w": 20, "x": 4, "y": 12 },
+      "id": 32,
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": [ { "desc": false, "displayName": "Disciplina" } ]
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+          "groupBy": [
+            { "params": ["className"], "type": "tag" },
+            { "params": ["index"],     "type": "tag" },
+            { "params": ["none"],      "type": "fill" }
+          ],
+          "measurement": "classroom_classes",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT last(\"position\") AS \"position\" FROM \"classroom_classes\" WHERE $timeFilter GROUP BY \"className\", \"index\" fill(none)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Presenças em Aula",
+      "type": "table"
+    }
+
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["snmp", "classroom", "mib"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "CLASSROOM-MIB Dashboard",
+  "uid": "classroom-mib-001",
+  "version": 1
+}
