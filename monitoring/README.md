@@ -75,10 +75,12 @@ Serviços expostos no host:
 
 Credenciais Grafana por omissão: `admin` / `admin`.
 
-NOTA: para limpar completamente dockers, imagens e volumes de execuções prévias,
-fazer, dentro pasta monitoring:
+NOTA: Se for necessário um "começo limpo"
 
 ```bash
+# WARNING: usar apenas para limpar completamente dockers, imagens e volumes 
+# de execuções prévias (a executar dentro pasta monitoring)
+
 cd monitoring
 docker compose down --volumes --rmi all
 ```
