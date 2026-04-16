@@ -1,0 +1,132 @@
+@startwbs
+' ════════════════════════════════════════════════════════════════
+' CLASSROOM-MIB — OID Tree  (PlantUML WBS)
+' Module  : CLASSROOM-MIB
+' OID     : 1.3.6.1.3.2026
+' Updated : 2026-02-27
+' Render  : https://www.plantuml.com/plantuml/uml/
+'           or VS Code PlantUML extension
+' ════════════════════════════════════════════════════════════════
+
+<style>
+wbsDiagram {
+  FontName "Courier New"
+  FontSize 12
+  LineColor #556677
+  LineThickness 1.5
+  RoundCorner 8
+
+  .oidpath {
+    BackgroundColor #E4EFF7
+    FontColor #33495E
+    FontStyle italic
+    LineColor #9BB8CC
+    RoundCorner 4
+  }
+  .module {
+    BackgroundColor #1A4F7A
+    FontColor #FFFFFF
+    FontStyle bold
+    LineColor #0D3055
+  }
+  .table {
+    BackgroundColor #1A6B45
+    FontColor #FFFFFF
+    FontStyle bold
+    LineColor #0D4A2E
+  }
+  .entry {
+    BackgroundColor #2E9B65
+    FontColor #FFFFFF
+    LineColor #1A6B45
+  }
+  .index {
+    BackgroundColor #C0392B
+    FontColor #FFFFFF
+    FontStyle bold
+    LineColor #922B21
+  }
+  .compindex {
+    BackgroundColor #8E44AD
+    FontColor #FFFFFF
+    FontStyle bold
+    LineColor #6C3483
+  }
+  .colRC {
+    BackgroundColor #EAF6EA
+    FontColor #1A4A28
+    LineColor #6ABF82
+  }
+  .colRO {
+    BackgroundColor #EBF5FB
+    FontColor #1A3A5A
+    LineColor #7FB3D3
+  }
+  .rowstatus {
+    BackgroundColor #F4ECF7
+    FontColor #4A235A
+    LineColor #A569BD
+  }
+  .conformance {
+    BackgroundColor #F5F5F0
+    FontColor #444433
+    FontStyle italic
+    LineColor #BBBBAA
+  }
+  .group {
+    BackgroundColor #FDFDF0
+    FontColor #444433
+    LineColor #CCCC99
+  }
+}
+</style>
+
+* <b>CLASSROOM-MIB</b>\n<i>OID: 1.3.6.1.3.2026 — MODULE-IDENTITY</i> <<module>>
+** iso(1) <<oidpath>>
+*** org(3) <<oidpath>>
+**** dod(6) <<oidpath>>
+***** internet(1) <<oidpath>>
+****** experimental(3) <<oidpath>>
+******* classroomMIB(2026) <<module>>
+
+' ─── roomTable ─────────────────────────────────────────────────
+******** roomTable(1)\n[NA]  SEQUENCE OF RoomEntry\nTable of university rooms <<table>>
+********* roomEntry(1)\n[NA]  INDEX { roomId } <<entry>>
+********** ★ roomId(1)\n[NA]  DisplayString(0..12)\nUnique room identifier <<index>>
+********** campus(2)\n[RC]  DisplayString(0..64)\nCampus location <<colRC>>
+********** building(3)\n[RC]  DisplayString(0..64)\nBuilding location <<colRC>>
+********** capacity(4)\n[RC]  Unsigned32\nMax students allowed <<colRC>>
+********** adminStatus(5)\n[RC]  RoomAdminStatus\n{ open(1), reserved(2), closed(3) } <<colRC>>
+********** operStatus(6)\n[RO]  RoomOperStatus\n{ free(1), inUse(2), unusable(3) } <<colRO>>
+********** roomRowStatus(7)\n[RC]  RowStatus\nRow lifecycle management <<rowstatus>>
+
+' ─── studentTable ──────────────────────────────────────────────
+******** studentTable(2)\n[NA]  SEQUENCE OF StudentEntry\nTable of students <<table>>
+********* studentEntry(1)\n[NA]  INDEX { studentId } <<entry>>
+********** ★ studentId(1)\n[NA]  DisplayString(0..12)\nUnique student identifier <<index>>
+********** studentName(2)\n[RC]  DisplayString(0..128)\nFull name <<colRC>>
+********** course(3)\n[RC]  DisplayString(0..128)\nAcademic course enrolled <<colRC>>
+********** courseYear(4)\n[RC]  StudentCourseYear\n{ first(1)..fifth(5) } <<colRC>>
+********** studentRowStatus(5)\n[RC]  RowStatus\nRow lifecycle management <<rowstatus>>
+
+' ─── classTable ────────────────────────────────────────────────
+******** classTable(3)\n[NA]  SEQUENCE OF ClassEntry\nStudents ↔ Rooms at specific times <<table>>
+********* classEntry(1)\n[NA]  INDEX { roomId, studentId, classDateTime } <<entry>>
+********** ☆ classRoomId(1)\n[NA]  DisplayString(0..12)\nRoom (compound index) <<compindex>>
+********** ☆ classStudentId(2)\n[NA]  DisplayString(0..12)\nStudent (compound index) <<compindex>>
+********** ☆ classDateTime(3)\n[NA]  DateAndTime\nDate/time (compound index) <<compindex>>
+********** className(4)\n[RC]  DisplayString(0..128)\nName of the class <<colRC>>
+********** position(5)\n[RC]  Integer32(0..999)\nStudent seat in the room <<colRC>>
+********** classRowStatus(6)\n[RC]  RowStatus\nRow lifecycle management <<rowstatus>>
+
+' ─── Conformance ───────────────────────────────────────────────
+******** classroomMibConformance(4)\nOBJECT IDENTIFIER <<conformance>>
+********* classroomMibGroups(1)\nOBJECT IDENTIFIER <<conformance>>
+********** roomGroup(1)\ncampus, building, capacity\nadminStatus, operStatus <<group>>
+********** studentGroup(2)\nstudentName, course, courseYear <<group>>
+********** classGroup(3)\nclassName, position <<group>>
+********** controlGroup(4)\nroomRowStatus, studentRowStatus\nclassRowStatus <<group>>
+********* classroomMibCompliances(2)\nOBJECT IDENTIFIER <<conformance>>
+********** classroomMibCompliance(1)\nMANDATORY: roomGroup, studentGroup, classGroup\nOPTIONAL:  controlGroup <<conformance>>
+
+@endwbs

@@ -1,0 +1,103 @@
+CLASSROOM-MIB — OID Tree
+════════════════════════════════════════════════════════════════
+Module  : CLASSROOM-MIB
+Root    : iso(1).org(3).dod(6).internet(1).experimental(3)
+OID     : 1.3.6.1.3.2026
+Updated : 2026-02-27
+════════════════════════════════════════════════════════════════
+
+Access codes:  NA = not-accessible   RO = read-only
+               RW = read-write       RC = read-create
+★ = index column   ☆ = compound index
+
+──────────────────────────────── OID Path ────────────────────────────────
+
+iso(1)
+└── org(3)
+    └── dod(6)
+        └── internet(1)
+            └── experimental(3)
+                └── classroomMIB(2026)             [MODULE-IDENTITY]
+                    ├── roomTable(1)
+                    ├── studentTable(2)
+                    ├── classTable(3)
+                    └── classroomMibConformance(4)
+
+────────────────────────────── Room Table ────────────────────────────────
+
+classroomMIB(2026)
+└── roomTable(1)                  [NA]  SEQUENCE OF RoomEntry
+    └── roomEntry(1)              [NA]  INDEX { roomId }
+        ├── roomId(1)           ★ [NA]  DisplayString (SIZE 0..12)
+        │                                Unique room identifier.
+        ├── campus(2)             [RC]  DisplayString (SIZE 0..64)
+        │                                Campus where the room is located.
+        ├── building(3)           [RC]  DisplayString (SIZE 0..64)
+        │                                Building where the room is located.
+        ├── capacity(4)           [RC]  Unsigned32
+        │                                Maximum number of students.
+        ├── adminStatus(5)        [RC]  RoomAdminStatus
+        │                                { open(1), reserved(2), closed(3) }
+        ├── operStatus(6)         [RO]  RoomOperStatus
+        │                                { free(1), inUse(2), unusable(3) }
+        └── roomRowStatus(7)      [RC]  RowStatus
+
+─────────────────────────────── Student Table ────────────────────────────
+
+classroomMIB(2026)
+└── studentTable(2)               [NA]  SEQUENCE OF StudentEntry
+    └── studentEntry(1)           [NA]  INDEX { studentId }
+        ├── studentId(1)        ★ [NA]  DisplayString (SIZE 0..12)
+        │                                Unique student identifier.
+        ├── studentName(2)        [RC]  DisplayString (SIZE 0..128)
+        │                                Full name of the student.
+        ├── course(3)             [RC]  DisplayString (SIZE 0..128)
+        │                                Academic course enrolled.
+        ├── courseYear(4)         [RC]  StudentCourseYear
+        │                                { first(1), second(2), third(3),
+        │                                  fourth(4), fifth(5) }
+        └── studentRowStatus(5)   [RC]  RowStatus
+
+──────────────────────────────── Class Table ─────────────────────────────
+
+classroomMIB(2026)
+└── classTable(3)                 [NA]  SEQUENCE OF ClassEntry
+    └── classEntry(1)             [NA]  INDEX { roomId, studentId, classDateTime }
+        ├── classRoomId(1)      ☆ [NA]  DisplayString (SIZE 0..12)
+        │                                Room where the class takes place.
+        ├── classStudentId(2)   ☆ [NA]  DisplayString (SIZE 0..12)
+        │                                Student attending the class.
+        ├── classDateTime(3)    ☆ [NA]  DateAndTime
+        │                                Date and time of the class.
+        ├── className(4)          [RC]  DisplayString (SIZE 0..128)
+        │                                Name of the class / curricular unit.
+        ├── position(5)           [RC]  Integer32 (0..999)
+        │                                Student position in the room.
+        └── classRowStatus(6)     [RC]  RowStatus
+
+───────────────────────────── Conformance ────────────────────────────────
+
+classroomMIB(2026)
+└── classroomMibConformance(4)    [OBJECT IDENTIFIER]
+    ├── classroomMibGroups(1)     [OBJECT IDENTIFIER]
+    │   ├── roomGroup(1)          [OBJECT-GROUP]
+    │   │     campus, building, capacity, adminStatus, operStatus
+    │   ├── studentGroup(2)       [OBJECT-GROUP]
+    │   │     studentName, course, courseYear
+    │   ├── classGroup(3)         [OBJECT-GROUP]
+    │   │     className, position
+    │   └── controlGroup(4)       [OBJECT-GROUP]
+    │         roomRowStatus, studentRowStatus, classRowStatus
+    └── classroomMibCompliances(2) [OBJECT IDENTIFIER]
+        └── classroomMibCompliance(1) [MODULE-COMPLIANCE]
+              MANDATORY: roomGroup, studentGroup, classGroup
+              OPTIONAL:  controlGroup
+
+──────────────────────── Textual Conventions ─────────────────────────────
+
+RoomAdminStatus   ::= INTEGER { open(1), reserved(2), closed(3) }
+RoomOperStatus    ::= INTEGER { free(1), inUse(2), unusable(3) }
+StudentCourseYear ::= INTEGER { first(1), second(2), third(3),
+                                 fourth(4), fifth(5) }
+
+════════════════════════════════════════════════════════════════
