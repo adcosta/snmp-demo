@@ -1,48 +1,11 @@
 ---
 marp: true
-theme: default
+theme: neobeam
 paginate: true
-backgroundColor: #ffffff
-style: |
-  section {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    font-size: 1.1em;
-  }
-  h1 {
-    color: #1a5276;
-    border-bottom: 3px solid #2e86c1;
-    padding-bottom: 0.2em;
-  }
-  h2 {
-    color: #2e86c1;
-  }
-  code {
-    background: #f0f4f8;
-    border-radius: 4px;
-    padding: 0.1em 0.3em;
-  }
-  pre {
-    background: #1e1e1e;
-    color: #d4d4d4;
-    border-radius: 8px;
-    font-size: 0.85em;
-  }
-  table {
-    font-size: 0.9em;
-    width: 100%;
-  }
-  th {
-    background: #2e86c1;
-    color: white;
-  }
-  .columns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1em;
-  }
 ---
 
-# Protocol Buffers
+# gRPC - Protocol Buffers
+
 ## O formato de serialização do gRPC
 
 ---
@@ -52,33 +15,33 @@ style: |
 Chamar uma função que corre noutro servidor como se fosse local:
 
 ```python
-# Parece isto (chamada local):
+# Invocação semelhante a uma chamada local
 resposta = router.get("/interface")
 
-# Mas por baixo acontece isto:
+# Stubs do lado do cliente e do lado do servidor serializam pedido e resposta
 # cliente → serializa pedido → rede → router → executa → rede → resposta
 ```
 
-**gRPC** é a implementação da Google — acrescenta:
+**gRPC** é a implementação de RPCs da Google 
 
 | | |
 |---|---|
 | **HTTP/2** | Transporte multiplexado, mais eficiente que HTTP/1.1 |
-| **Protobuf** | Formato binário compacto (em vez de JSON/XML) |
-| **`.proto`** | Contrato partilhado — gera código cliente e servidor automaticamente |
-| **Streaming** | Suporte nativo a streams bidirecionais |
+| **Protobuf** | Formato binário compacto (em alternativa ao JSON/XML) |
+| **`.proto`** | Definições: gera código cliente e servidor automaticamente |
+| **Streaming** | Suporte nativo para streams bidirecionais |
 
 > É a base de **gNMI, gNOI, gNSI, gRIBI** e **p4RT** em redes modernas.
 
 ---
 
-## O problema
+## gRPC — Remote Procedure Call
 
 Como é que dois sistemas trocam dados de forma eficiente?
 
 <br>
 
-**Texto (JSON)** — legível, mas verboso:
+**Texto (JSON)** — legível para humanos, à custa de overhead elevado
 ```json
 {
   "interface": {
@@ -93,9 +56,11 @@ Só o campo `"oper-state"` ocupa **11 bytes** no nome, mais aspas, chavetas, esp
 
 ---
 
-## A solução: binário
+## gRPC Protobuf
 
-O mesmo dado em Protobuf:
+### Codificação em formato binário simplificado
+
+Os mesmos dados em formato Protobuf:
 
 ```
 0a 05 6d 67 6d 74 30 12 02 75 70 18 dc 0b
@@ -103,7 +68,7 @@ O mesmo dado em Protobuf:
 
 - Ilegível por humanos
 - Mas **extremamente compacto**
-- Em vez do nome do campo, envia apenas um **número**
+- Em vez do nome do campo, envia apenas um **número** que o identifica
 
 <br>
 
